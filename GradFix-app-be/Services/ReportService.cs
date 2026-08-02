@@ -21,7 +21,7 @@ namespace GradFix_app_be.Services
             _mapper = mapper;
         }
 
-        public async Task<Guid> CreateReportAsync(ReportCreateDto dto, string? reporterId)
+        public async Task<int> CreateReportAsync(ReportCreateDto dto, string? reporterId)
         {
             var images = dto.Images ?? new List<ReportImageCreateDto>();
 

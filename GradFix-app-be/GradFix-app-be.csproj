@@ -10,7 +10,9 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.2.0" />
     <PackageReference Include="DotNetEnv" Version="3.2.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.75.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.18" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.18" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.18" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.18">
       <PrivateAssets>all</PrivateAssets>
@@ -26,7 +28,6 @@
     <Folder Include="Infrastructure\Migrations\" />
     <Folder Include="Infrastructure\Repositories\" />
     <Folder Include="Models\" />
-    <Folder Include="Services\Mappings\" />
     <Folder Include="Services\IServices\" />
   </ItemGroup>
 

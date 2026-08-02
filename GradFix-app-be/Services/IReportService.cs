@@ -5,6 +5,6 @@ namespace GradFix_app_be.Services
 {
     public interface IReportService
     {
-        Task<Guid> CreateReportAsync(ReportCreateDto dto, string? reporterId);
+        Task<int> CreateReportAsync(ReportCreateDto dto, string? reporterId);
     }
 }

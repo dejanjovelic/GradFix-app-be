@@ -1,10 +1,16 @@
 using DotNetEnv;
 using GradFix_app_be;
+using GradFix_app_be.Controllers.Middleware;
 using GradFix_app_be.Domain;
 using GradFix_app_be.Infrastructure;
+using GradFix_app_be.Services;
+using GradFix_app_be.Services.Interfaces;
 using GradFix_app_be.Services.Mappings;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 Env.Load("../.env");
@@ -14,33 +20,32 @@ builder.Configuration.AddEnvironmentVariables();
 
 Startup.AddCors(builder);
 Startup.AddSwagger(builder);
+Startup.AddAuthenticationAndAuthorization(builder);
 
-// Add services to the container.
-builder.Services.AddControllers();
+
 
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<ReportProfile>();
- 
+    cfg.AddProfile<UserProfile>();
 });
 
-
-var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING")
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
                        ?? builder.Configuration.GetConnectionString("DefaultConnection")
                        ?? "Host=localhost;Database=gradfix;Username=postgres;Password=postgres";
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-{
-    options.User.RequireUniqueEmail = true;
-})
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication();
-// Register application services
-builder.Services.AddScoped<GradFix_app_be.Services.IReportService, GradFix_app_be.Services.ReportService>();
+// Register auth services
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+
+builder.Services.AddTransient<ExceptionHandlingMiddleware>();
+
+// Add services to the container.
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -51,10 +56,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseCors("AllowAllOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseCors();
 app.MapControllers();
 
 // Seed roles and admin user
