@@ -1,0 +1,6 @@
+@GradFix_app_be_HostAddress = http://localhost:5207
+
+GET {{GradFix_app_be_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
