@@ -12,6 +12,7 @@ namespace GradFix_app_be.Services.Mappings
                 .ForMember(dest => dest.StatusId, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()
                 );
+            CreateMap<Report, ReportResponseDto>();
         }
     }
 }

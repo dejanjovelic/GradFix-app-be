@@ -11,7 +11,9 @@ namespace GradFix_app_be.Services.Mappings
             CreateMap<RegisterDto, ApplicationUser>();
 
             CreateMap<ApplicationUser, ProfileDto>()
-                .ForMember(dest=>dest.Roles, opt=>opt.Ignore());
+                .ForMember(dest => dest.Roles, opt => opt.Ignore());
+
+            CreateMap<ApplicationUser, UserShortDto>();
         }
     }
 }

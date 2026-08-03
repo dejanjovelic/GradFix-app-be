@@ -1,8 +1,10 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using GradFix_app_be.Services.Dtos;
 using GradFix_app_be.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace GradFix_app_be.Controllers
 {
@@ -18,21 +20,23 @@ namespace GradFix_app_be.Controllers
         }
 
         [HttpPost]
-        [Authorize]
-        public async Task<IActionResult> Create([FromBody] ReportCreateDto dto)
+        [Authorize(Roles = "Citizen")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Create([FromForm] ReportCreateDto dto)
         {
-            // reporter id from authenticated user
-            var reporterId = User?.Identity?.IsAuthenticated == true ? User.FindFirst("sub")?.Value ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value : null;
-
-            var id = await _reportService.CreateReportAsync(dto, reporterId);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            var reporterId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            ReportResponseDto report = await _reportService.CreateReportAsync(dto, reporterId);
+            return CreatedAtAction(
+                    nameof(GetByIdAsync),
+                    new { id = report.Id },
+                    report);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(System.Guid id)
+        public async Task<IActionResult> GetByIdAsync(int id)
         {
-            // Placeholder until read methods are implemented
-            return NotFound();
+            ReportResponseDto report = await _reportService.GetByIdAsync(id);
+            return Ok(report);
         }
     }
 }

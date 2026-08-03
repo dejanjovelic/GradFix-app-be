@@ -1,61 +1,100 @@
+
 using AutoMapper;
 using GradFix_app_be.Domain;
-using GradFix_app_be.Infrastructure;
+using GradFix_app_be.Domain.IRepositories;
 using GradFix_app_be.Services.Dtos;
 using GradFix_app_be.Services.Exceptions;
 using GradFix_app_be.Services.IServices;
-using Microsoft.AspNetCore.Http.HttpResults;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GradFix_app_be.Services
 {
     public class ReportService : IReportService
     {
-        private readonly AppDbContext _db;
+        private const string InitialStatusName = "New";
+
+        private readonly IReportRepository _reportRepository;
+        private readonly IReportStatusRepository _reportStatusRepository;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IImageStorageService _imageStorageService;
         private readonly IMapper _mapper;
 
-        public ReportService(AppDbContext db, IMapper mapper)
+        public ReportService(
+            IReportRepository reportRepository,
+            IReportStatusRepository reportStatusRepository,
+            ICategoryRepository categoryRepository,
+            IImageStorageService imageStorageService,
+            IMapper mapper
+            )
         {
-            _db = db;
+            _reportRepository = reportRepository;
+            _reportStatusRepository = reportStatusRepository;
+            _categoryRepository = categoryRepository;
+            _imageStorageService = imageStorageService;
             _mapper = mapper;
         }
 
-        public async Task<int> CreateReportAsync(ReportCreateDto dto, string? reporterId)
+        public async Task<ReportResponseDto> CreateReportAsync(ReportCreateDto dto, string? reporterId)
         {
-            var images = dto.Images ?? new List<ReportImageCreateDto>();
-
-            if (images.Count > 3)
+            if (string.IsNullOrWhiteSpace(reporterId))
             {
-                throw new BadRequestException("A report cannot have more than 3 images.");
+                throw new UnauthorizedException("Authenticated user identifier is missing.");
             }
 
-            Report report = _mapper.Map<Report>(dto);
-            report.StatusId = 1;
-            report.CreatedAt = DateTime.UtcNow;
+            var categoryExists = await _categoryRepository.ExistsAsync(dto.CategoryId);
 
-            _db.Reports.Add(report);
-
-            // map images
-            int order = 0;
-            foreach (var img in images)
+            if (!categoryExists)
             {
-                var ri = new ReportImage
-                {
-                    Report = report,
-                    FileName = img.FileName,
-                    FilePath = img.FilePath,
-                    ContentType = img.ContentType,
-                    Size = img.Size,
-                    Order = order++,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _db.ReportImages.Add(ri); //Service ne radi dodavanje u bazu izmeniti
+                throw new BadRequestException(
+                    "The selected category does not exist.");
             }
 
-            await _db.SaveChangesAsync();
-            return report.Id;
+            var initialStatus = await _reportStatusRepository.GetByNameAsync(InitialStatusName);
+
+            if (initialStatus == null)
+            {
+                throw new InvalidOperationException(
+                    $"The initial report status '{InitialStatusName}' is not configured.");
+            }
+
+            var storedImages = await _imageStorageService.SaveReportImagesAsync(dto.Images);
+
+            var report = new Report
+            {
+                Title = dto.Title?.Trim(),
+                Description = dto.Description.Trim(),
+                CategoryId = dto.CategoryId,
+                ReporterId = reporterId,
+                StatusId = initialStatus.Id,
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude,
+                AddressFallback = dto.AddressFallback?.Trim(),
+                CreatedAt = DateTime.UtcNow,
+
+                Images = storedImages
+                    .Select(image => new ReportImage
+                    {
+                        FileName = image.FileName,
+                        FilePath = image.FilePath,
+                        ContentType = image.ContentType,
+                        Size = image.Size,
+                        Order = image.Order,
+                        CreatedAt = DateTime.UtcNow
+                    })
+                    .ToList()
+            };
+
+            await _reportRepository.AddAsync(report);
+
+            return _mapper.Map<ReportResponseDto>(report);
+        }
+        public async Task<ReportResponseDto> GetByIdAsync(int id)
+        {
+            Report? report = await _reportRepository.GetByIdAsync(id);
+            if (report == null)
+            {
+                throw new NotFoundException($"Report with Id: {id} not found.");
+            }
+            return _mapper.Map<ReportResponseDto>(report);
         }
     }
 }

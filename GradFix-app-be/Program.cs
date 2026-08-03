@@ -2,7 +2,9 @@ using DotNetEnv;
 using GradFix_app_be;
 using GradFix_app_be.Controllers.Middleware;
 using GradFix_app_be.Domain;
+using GradFix_app_be.Domain.IRepositories;
 using GradFix_app_be.Infrastructure;
+using GradFix_app_be.Infrastructure.Repositories;
 using GradFix_app_be.Services;
 using GradFix_app_be.Services.IServices;
 using GradFix_app_be.Services.Mappings;
@@ -26,7 +28,11 @@ Startup.AddAuthenticationAndAuthorization(builder);
 
 builder.Services.AddAutoMapper(cfg =>
 {
+    cfg.AddProfile<CategoryProfile>();
+    cfg.AddProfile<ReportImageProfile>();
     cfg.AddProfile<ReportProfile>();
+    cfg.AddProfile<ReportStatusHistoryProfile>();
+    cfg.AddProfile<ReportStatusProfile>();
     cfg.AddProfile<UserProfile>();
 });
 
@@ -41,6 +47,10 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IReportStatusRepository, ReportStatusRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
