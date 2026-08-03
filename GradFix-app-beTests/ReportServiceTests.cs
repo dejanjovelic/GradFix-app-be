@@ -5,9 +5,10 @@ using GradFix_app_be.Services;
 using GradFix_app_be.Services.Dtos;
 using GradFix_app_be.Services.Exceptions;
 using GradFix_app_be.Services.IServices;
+using GradFix_app_be.Services.Mappings;
 using Microsoft.AspNetCore.Http;
-using System.Timers;
 using Moq;
+using System.Timers;
 
 namespace GradFix_app_beTests
 {
@@ -50,13 +51,9 @@ namespace GradFix_app_beTests
                 _service.CreateReportAsync(dto, null);
 
             // Assert
-            var exception =
-                await Assert.ThrowsAsync<UnauthorizedException>(
-                    action);
+            var exception = await Assert.ThrowsAsync<UnauthorizedException>(action);
 
-            Assert.Equal(
-                "Authenticated user identifier is missing.",
-                exception.Message);
+            Assert.Equal("Authenticated user identifier is missing.", exception.Message);
 
             _categoryRepositoryMock.Verify(
                 repository => repository.ExistsAsync(
@@ -77,18 +74,12 @@ namespace GradFix_app_beTests
 
             // Act
             var action = () =>
-                _service.CreateReportAsync(
-                    dto,
-                    "citizen-id");
+                _service.CreateReportAsync(dto,"citizen-id");
 
             // Assert
-            var exception =
-                await Assert.ThrowsAsync<BadRequestException>(
-                    action);
+            var exception = await Assert.ThrowsAsync<BadRequestException>(action);
 
-            Assert.Equal(
-                "The selected category does not exist.",
-                exception.Message);
+            Assert.Equal( "The selected category does not exist.", exception.Message);
 
             _reportStatusRepositoryMock.Verify(
                 repository => repository.GetByNameAsync(
@@ -397,6 +388,271 @@ namespace GradFix_app_beTests
                     image.Object
                 }
             };
+        }
+
+                    [Fact]
+                    public async Task GetAllAsync_WithValidQuery_ReturnsPaginatedReports()
+                    {
+                        // Arrange
+                        var query = new ReportQueryDto
+                        {
+                            Page = 1,
+                            PageSize = 2,
+                            CategoryId = 1,
+                            StatusId = 1
+                        };
+
+                        var reports = new List<Report>
+                        {
+                            new()
+                            {
+                                Id = 1,
+                                Title = "Broken bench",
+                                Description = "Bench is damaged.",
+                                CategoryId = 1,
+                                StatusId = 1,
+                                CreatedAt = DateTime.UtcNow
+                            },
+                            new()
+                            {
+                                Id = 2,
+                                Title = "Broken bin",
+                                Description = "Public bin is damaged.",
+                                CategoryId = 1,
+                                StatusId = 1,
+                                CreatedAt = DateTime.UtcNow
+                            }
+                        };
+
+                        var paginatedReports = new PaginatedList<Report>(
+                            reports,
+                            page: 1,
+                            pageSize: 2,
+                            totalRowCount: 5);
+
+                        var mappedReports = new List<ReportListItemDto>
+                        {
+                            new()
+                            {
+                                Id = 1,
+                                Title = "Broken bench",
+                                Description = "Bench is damaged.",
+                                CategoryId = 1,
+                                StatusId = 1
+                            },
+                            new()
+                            {
+                                Id = 2,
+                                Title = "Broken bin",
+                                Description = "Public bin is damaged.",
+                                CategoryId = 1,
+                                StatusId = 1
+                            }
+                        };
+
+                        _reportRepositoryMock
+                            .Setup(repository => repository.GetAllAsync(
+                                query.Page,
+                                query.PageSize,
+                                query.CategoryId,
+                                query.StatusId))
+                            .ReturnsAsync(paginatedReports);
+
+                        _mapperMock
+                            .Setup(mapper =>
+                                mapper.Map<List<ReportListItemDto>>(reports))
+                            .Returns(mappedReports);
+
+                // Act
+                var result = await _service.GetAllAsync(query);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(2, result.Items.Count);
+                Assert.Equal(1, result.Page);
+                Assert.Equal(2, result.PageSize);
+                Assert.Equal(5, result.TotalCount);
+                Assert.Equal(3, result.TotalPages);
+
+                Assert.Equal(1, result.Items[0].Id);
+                Assert.Equal("Broken bench", result.Items[0].Title);
+
+                _reportRepositoryMock.Verify(repository =>
+                    repository.GetAllAsync(
+                        1,
+                        2,
+                        1,
+                        1),
+                    Times.Once);
+
+                _mapperMock.Verify(mapper =>
+                    mapper.Map<List<ReportListItemDto>>(reports),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task GetAllAsync_WhenNoReportsExist_ReturnsEmptyPaginatedList()
+            {
+                // Arrange
+                var query = new ReportQueryDto
+                {
+                    Page = 1,
+                    PageSize = 6
+                };
+
+                var reports = new List<Report>();
+
+                var paginatedReports = new PaginatedList<Report>(
+                    reports,
+                    page: 1,
+                    pageSize: 6,
+                    totalRowCount: 0);
+
+                _reportRepositoryMock
+                    .Setup(repository => repository.GetAllAsync(
+                        query.Page,
+                        query.PageSize,
+                        query.CategoryId,
+                        query.StatusId))
+                    .ReturnsAsync(paginatedReports);
+
+                _mapperMock
+                    .Setup(mapper =>
+                        mapper.Map<List<ReportListItemDto>>(reports))
+                    .Returns([]);
+
+                // Act
+                var result = await _service.GetAllAsync(query);
+
+                // Assert
+                Assert.Empty(result.Items);
+                Assert.Equal(1, result.Page);
+                Assert.Equal(6, result.PageSize);
+                Assert.Equal(0, result.TotalCount);
+                Assert.Equal(0, result.TotalPages);
+
+                _reportRepositoryMock.Verify(repository =>
+                    repository.GetAllAsync(
+                        1,
+                        6,
+                        null,
+                        null),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task GetAllAsync_WithCategoryFilter_PassesCategoryToRepository()
+            {
+                // Arrange
+                var query = new ReportQueryDto
+                {
+                    Page = 2,
+                    PageSize = 6,
+                    CategoryId = 3,
+                    StatusId = null
+                };
+
+                var paginatedReports = new PaginatedList<Report>(
+                    [],
+                    page: 2,
+                    pageSize: 6,
+                    totalRowCount: 0);
+
+                _reportRepositoryMock
+                    .Setup(repository => repository.GetAllAsync(
+                        2,
+                        6,
+                        3,
+                        null))
+                    .ReturnsAsync(paginatedReports);
+
+                _mapperMock
+                    .Setup(mapper =>
+                        mapper.Map<List<ReportListItemDto>>(
+                            paginatedReports.Items))
+                    .Returns([]);
+
+                // Act
+                await _service.GetAllAsync(query);
+
+                // Assert
+                _reportRepositoryMock.Verify(repository =>
+                    repository.GetAllAsync(
+                        2,
+                        6,
+                        3,
+                        null),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task GetAllAsync_WithStatusFilter_PassesStatusToRepository()
+            {
+                // Arrange
+                var query = new ReportQueryDto
+                {
+                    Page = 1,
+                    PageSize = 10,
+                    CategoryId = null,
+                    StatusId = 2
+                };
+
+                var paginatedReports = new PaginatedList<Report>(
+                    [],
+                    page: 1,
+                    pageSize: 10,
+                    totalRowCount: 0);
+
+                _reportRepositoryMock
+                    .Setup(repository => repository.GetAllAsync(
+                        1,
+                        10,
+                        null,
+                        2))
+                    .ReturnsAsync(paginatedReports);
+
+                _mapperMock
+                    .Setup(mapper =>
+                        mapper.Map<List<ReportListItemDto>>(
+                            paginatedReports.Items))
+                    .Returns([]);
+
+                // Act
+                await _service.GetAllAsync(query);
+
+                // Assert
+                _reportRepositoryMock.Verify(repository =>
+                    repository.GetAllAsync(
+                        1,
+                        10,
+                        null,
+                        2),
+                    Times.Once);
+            }
+
+            [Theory]
+            [InlineData(0, 6, 0)]
+            [InlineData(1, 6, 1)]
+            [InlineData(6, 6, 1)]
+            [InlineData(7, 6, 2)]
+            [InlineData(12, 6, 2)]
+            [InlineData(13, 6, 3)]
+            public void PaginatedListDto_CalculatesTotalPagesCorrectly(
+            int totalCount,
+            int pageSize,
+            int expectedTotalPages)
+                {
+                    // Act
+                    var result =
+                        new PaginatedListDto<ReportListItemDto>(
+                            [],
+                            page: 1,
+                            pageSize,
+                            totalCount);
+
+                    // Assert
+                    Assert.Equal(expectedTotalPages, result.TotalPages);
+                    Assert.Equal(totalCount, result.TotalCount);
         }
     }
 }

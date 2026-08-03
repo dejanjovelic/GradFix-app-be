@@ -38,5 +38,14 @@ namespace GradFix_app_be.Controllers
             ReportResponseDto report = await _reportService.GetByIdAsync(id);
             return Ok(report);
         }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAll([FromQuery] ReportQueryDto query)
+        {
+            var reports = await _reportService.GetAllAsync(query);
+
+            return Ok(reports);
+        }
     }
 }

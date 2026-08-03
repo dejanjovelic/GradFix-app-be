@@ -5,6 +5,7 @@ using GradFix_app_be.Domain.IRepositories;
 using GradFix_app_be.Services.Dtos;
 using GradFix_app_be.Services.Exceptions;
 using GradFix_app_be.Services.IServices;
+using GradFix_app_be.Services.Mappings;
 
 namespace GradFix_app_be.Services
 {
@@ -79,8 +80,7 @@ namespace GradFix_app_be.Services
                         Size = image.Size,
                         Order = image.Order,
                         CreatedAt = DateTime.UtcNow
-                    })
-                    .ToList()
+                    }).ToList()
             };
 
             await _reportRepository.AddAsync(report);
@@ -95,6 +95,26 @@ namespace GradFix_app_be.Services
                 throw new NotFoundException($"Report with Id: {id} not found.");
             }
             return _mapper.Map<ReportResponseDto>(report);
+        }
+
+        public async Task<PaginatedListDto<ReportListItemDto>> GetAllAsync(ReportQueryDto query)
+        {
+            var paginatedReports =
+                await _reportRepository.GetAllAsync(
+                    query.Page,
+                    query.PageSize,
+                    query.CategoryId,
+                    query.StatusId);
+
+            var reportDtos =
+                _mapper.Map<List<ReportListItemDto>>(
+                    paginatedReports.Items);
+
+            return new PaginatedListDto<ReportListItemDto>(
+                reportDtos,
+                paginatedReports.Page,
+                paginatedReports.PageSize,
+                paginatedReports.TotalCount);
         }
     }
 }

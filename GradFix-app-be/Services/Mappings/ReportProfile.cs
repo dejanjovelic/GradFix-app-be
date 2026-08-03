@@ -13,6 +13,14 @@ namespace GradFix_app_be.Services.Mappings
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()
                 );
             CreateMap<Report, ReportResponseDto>();
+
+            CreateMap<Report, ReportListItemDto>()
+            .ForMember(
+                destination => destination.PrimaryImage,
+                options => options.MapFrom(
+                    source => source.Images
+                        .OrderBy(image => image.Order)
+                        .FirstOrDefault()));
         }
     }
 }

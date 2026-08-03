@@ -19,5 +19,14 @@ namespace GradFix_app_be.Infrastructure.Repositories
                 .FirstOrDefaultAsync(status =>
                 status.Name == statusName);
         }
+
+        public async Task<List<ReportStatus>> GetAllAsync()
+        {
+            return await _dbContext.ReportStatuses
+                .AsNoTracking()
+                .OrderBy(status => status.Id)
+                .ToListAsync();
+        }
+
     }
 }

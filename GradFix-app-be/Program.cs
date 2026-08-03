@@ -61,6 +61,7 @@ builder.Services.AddScoped<IReportStatusRepository, ReportStatusRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IReportStatusService, ReportStatusService>();
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
