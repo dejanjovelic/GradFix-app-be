@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="GradFix-app-be/GradFix-app-be.csproj" />
+  <Project Path="GradFix-app-beTests/GradFix-app-beTests.csproj" Id="caecfb5c-242f-4797-a817-b204b9d3fad8" />
 </Solution>
