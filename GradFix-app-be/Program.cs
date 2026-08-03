@@ -4,7 +4,7 @@ using GradFix_app_be.Controllers.Middleware;
 using GradFix_app_be.Domain;
 using GradFix_app_be.Infrastructure;
 using GradFix_app_be.Services;
-using GradFix_app_be.Services.Interfaces;
+using GradFix_app_be.Services.IServices;
 using GradFix_app_be.Services.Mappings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using GradFix_app_be.Services;
 using GradFix_app_be.Services.Dtos;
+using GradFix_app_be.Services.IServices;
 
 namespace GradFix_app_be.Controllers
 {

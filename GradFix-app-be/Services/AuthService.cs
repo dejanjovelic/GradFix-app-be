@@ -1,17 +1,19 @@
-using System;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using AutoMapper;
 using Google.Apis.Auth;
 using GradFix_app_be.Domain;
 using GradFix_app_be.Services.Dtos;
 using GradFix_app_be.Services.Exceptions;
-using GradFix_app_be.Services.Interfaces;
+using GradFix_app_be.Services.IServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GradFix_app_be.Services
 {
@@ -51,6 +53,7 @@ namespace GradFix_app_be.Services
             user.Email = dto.Email;
             user.Name = dto.Name;
             user.Surname = dto.Surname;
+            user.UserName = dto.Email;
 
             var createResult = await _userManager.CreateAsync(user, dto.Password);
             if (!createResult.Succeeded)
@@ -92,6 +95,9 @@ namespace GradFix_app_be.Services
             }
 
             var dto = _mapper.Map<ProfileDto>(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            dto.Roles = roles.ToList();
+
             return dto;
         }
 
@@ -112,12 +118,16 @@ namespace GradFix_app_be.Services
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Invalid Google id_token.");
+                _logger.LogError(
+       ex,
+       "Google token validation failed. ClientId: {ClientId}, Error: {Message}",
+       clientId,
+       ex.Message);
                 throw new UnauthorizedException("Invalid Google token.");
             }
 
             if (string.IsNullOrEmpty(payload.Email) || payload.EmailVerified != true)
-                throw new UnauthorizedAccessException("Google account email not verified.");
+                throw new UnauthorizedException("Google account email not verified.");
 
             var user = await _userManager.FindByEmailAsync(payload.Email);
             if (user == null)
@@ -144,11 +154,7 @@ namespace GradFix_app_be.Services
                 await _roleManager.CreateAsync(new IdentityRole(DefaultRole));
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
-            if (!roles.Contains(DefaultRole))
-            {
-                await _userManager.AddToRoleAsync(user, DefaultRole);
-            }
+            await _userManager.AddToRoleAsync(user, DefaultRole);
 
             return await _tokenService.CreateTokenAsync(user);
         }

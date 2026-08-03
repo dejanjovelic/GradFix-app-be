@@ -2,7 +2,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using GradFix_app_be.Services.Dtos;
 
-namespace GradFix_app_be.Services.Interfaces
+namespace GradFix_app_be.Services.IServices
 {
     public interface IAuthService
     {

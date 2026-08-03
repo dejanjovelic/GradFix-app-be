@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using GradFix_app_be.Domain;
 using GradFix_app_be.Services.Dtos;
-using GradFix_app_be.Services.Interfaces;
+using GradFix_app_be.Services.IServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -18,11 +20,13 @@ namespace GradFix_app_be.Services
     {
         private readonly IConfiguration _config;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IMapper _mapper;
 
-        public TokenService(IConfiguration config, UserManager<ApplicationUser> userManager)
+        public TokenService(IConfiguration config, UserManager<ApplicationUser> userManager, IMapper mapper)
         {
             _config = config;
             _userManager = userManager;
+            _mapper = mapper;
         }
 
         public async Task<TokenResultDto> CreateTokenAsync(ApplicationUser user)
@@ -61,13 +65,8 @@ namespace GradFix_app_be.Services
 
             var tokenStr = new JwtSecurityTokenHandler().WriteToken(token);
 
-            var profile = new ProfileDto
-            {
-                Id = user.Id,
-                Email = user.Email ?? string.Empty,
-                Name = user.Name,
-                Surname = user.Surname
-            };
+            var profile = _mapper.Map<ProfileDto>(user);
+            profile.Roles = roles.ToList();
 
             return new TokenResultDto
             {
