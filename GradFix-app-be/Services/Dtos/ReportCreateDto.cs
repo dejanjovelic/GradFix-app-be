@@ -15,10 +15,10 @@ namespace GradFix_app_be.Services.Dtos
         [Range(1, int.MaxValue, ErrorMessage = "Category is required.")]
         public int CategoryId { get; set; }
 
-        [Range(-90, 90)]
+        [Range(-90.0, 90.0)]
         public double? Latitude { get; set; }
 
-        [Range(-180, 180)]
+        [Range(-180.0, 180.0)]
         public double? Longitude { get; set; }
 
         [StringLength( 250, ErrorMessage = "Address cannot exceed 250 characters.")]

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Globalization;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,14 @@ Env.Load("../.env");
 
 // loading environmental variables
 builder.Configuration.AddEnvironmentVariables();
+
+
+CultureInfo.DefaultThreadCurrentCulture =
+    CultureInfo.InvariantCulture;
+
+CultureInfo.DefaultThreadCurrentUICulture =
+    CultureInfo.InvariantCulture;
+
 
 Startup.AddCors(builder);
 Startup.AddSwagger(builder);
@@ -74,6 +83,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseStaticFiles();
 
 // Seed roles and admin user
 await DbSeeder.SeedAsync(app.Services);

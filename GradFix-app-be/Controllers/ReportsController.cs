@@ -24,16 +24,16 @@ namespace GradFix_app_be.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Create([FromForm] ReportCreateDto dto)
         {
-            var reporterId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            var reporterId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             ReportResponseDto report = await _reportService.CreateReportAsync(dto, reporterId);
             return CreatedAtAction(
-                    nameof(GetByIdAsync),
+                    nameof(GetById),
                     new { id = report.Id },
                     report);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetByIdAsync(int id)
+        public async Task<IActionResult> GetById(int id)
         {
             ReportResponseDto report = await _reportService.GetByIdAsync(id);
             return Ok(report);

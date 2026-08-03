@@ -270,6 +270,10 @@ __pycache__/
 
 *.env
 
+# Ignore uploaded files
+wwwroot/uploads/*
+!wwwroot/uploads/.gitkeep
+
 # Cake - Uncomment if you are using it
 # tools/
 
