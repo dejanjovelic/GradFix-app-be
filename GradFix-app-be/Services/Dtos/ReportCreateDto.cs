@@ -21,7 +21,7 @@ namespace GradFix_app_be.Services.Dtos
         [Range(-180.0, 180.0)]
         public double? Longitude { get; set; }
 
-        [StringLength( 250, ErrorMessage = "Address cannot exceed 250 characters.")]
+        [StringLength(250, ErrorMessage = "Address cannot exceed 250 characters.")]
         public string? AddressFallback { get; set; }
 
         [Required]
@@ -30,27 +30,16 @@ namespace GradFix_app_be.Services.Dtos
         public List<IFormFile> Images { get; set; } = [];
 
         public IEnumerable<ValidationResult> Validate(
-            ValidationContext validationContext)
+    ValidationContext validationContext)
         {
-            var hasLatitude = this.Latitude.HasValue;
-            var hasLongitude = this.Longitude.HasValue;
-            var hasAddress = !string.IsNullOrWhiteSpace(this.AddressFallback);
-
-            if (hasLatitude != hasLongitude)
+            if (!Latitude.HasValue ||
+                !Longitude.HasValue)
             {
                 yield return new ValidationResult(
-                    "Latitude and longitude must be provided together.",
-                    [nameof(Latitude), nameof(Longitude)]);
-            }
-
-            if (!hasLatitude && !hasAddress)
-            {
-                yield return new ValidationResult(
-                    "GPS coordinates or a manual address are required.",
+                    "Please select the report location on the map or use your current location.",
                     [
                         nameof(Latitude),
-                        nameof(Longitude),
-                        nameof(AddressFallback)
+                        nameof(Longitude)
                     ]);
             }
         }

@@ -103,7 +103,7 @@ namespace GradFix_app_be.Services
 
         public async Task<TokenResultDto> GoogleSignInAsync(GoogleAuthDto dto)
         {
-            var clientId = _config["Google:ClientId"];
+            var clientId = Environment.GetEnvironmentVariable("Google__ClientId");
             if (string.IsNullOrEmpty(clientId))
                 throw new InvalidOperationException("Google:ClientId is not configured.");
 
