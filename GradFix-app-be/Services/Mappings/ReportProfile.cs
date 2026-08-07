@@ -16,27 +16,11 @@ namespace GradFix_app_be.Services.Mappings
             CreateMap<Report, ReportResponseDto>();
 
             CreateMap<Report, ReportListItemDto>()
-            .ForMember(
-                dest => dest.PrimaryImage,
+             .ForMember(
+                dest => dest.PrimaryImagePath,
                 opt => opt.MapFrom(
                     src => src.Images
-                        .OrderBy(image => image.Order)
-                        .FirstOrDefault()));
-
-            CreateMap<Report, ReportMapItemDto>()
-            .ForMember(
-                dest => dest.Latitude,
-                opt => opt.MapFrom(
-                    src => src.Latitude!.Value))
-            .ForMember(
-                dest => dest.Longitude,
-                opt => opt.MapFrom(
-                    src => src.Longitude!.Value))
-            .ForMember(
-                dest => dest.PrimaryImage,
-                opt => opt.MapFrom(
-                    src => src.Images
-                        .OrderBy(image => image.Order)
+                        .Select(image => image.FilePath)
                         .FirstOrDefault()));
         }
     }

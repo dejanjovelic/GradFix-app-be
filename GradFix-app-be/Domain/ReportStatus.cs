@@ -8,6 +8,5 @@ namespace GradFix_app_be.Domain
         public string? Name { get; set; }
         public int Order { get; set; }
 
-        public ICollection<Report>? Reports { get; set; }
     }
 }

@@ -5,7 +5,6 @@ using GradFix_app_be.Domain.IRepositories;
 using GradFix_app_be.Services.Dtos;
 using GradFix_app_be.Services.Exceptions;
 using GradFix_app_be.Services.IServices;
-using GradFix_app_be.Services.Mappings;
 
 namespace GradFix_app_be.Services
 {
@@ -115,11 +114,11 @@ namespace GradFix_app_be.Services
                 paginatedReports.TotalCount);
         }
 
-        public async Task<IReadOnlyCollection<ReportMapItemDto>> GetMapItemsAsync( int? categoryId, int? statusId)
+        public async Task<IReadOnlyCollection<ReportListItemDto>> GetMapItemsAsync( int? categoryId, int? statusId)
         {
             var reports = await _reportRepository.GetMapItemsAsync( categoryId, statusId);
 
-            return _mapper.Map<List<ReportMapItemDto>>(reports);
+            return _mapper.Map<List<ReportListItemDto>>(reports);
         }
     }
 }

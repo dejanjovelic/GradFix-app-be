@@ -27,9 +27,9 @@ namespace GradFix_app_be.Infrastructure
                 .HasForeignKey(r => r.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<ReportStatus>()
-                .HasMany(s => s.Reports)
-                .WithOne(r => r.Status)
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.Status)
+                .WithMany()
                 .HasForeignKey(r => r.StatusId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -42,7 +42,7 @@ namespace GradFix_app_be.Infrastructure
 
             modelBuilder.Entity<Report>()
                 .HasMany(r => r.Images)
-                .WithOne(i => i.Report)
+                .WithOne()
                 .HasForeignKey(i => i.ReportId)
                 .OnDelete(DeleteBehavior.Cascade);
 

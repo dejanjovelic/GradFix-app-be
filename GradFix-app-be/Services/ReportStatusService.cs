@@ -3,6 +3,7 @@ using GradFix_app_be.Domain;
 using GradFix_app_be.Domain.IRepositories;
 using GradFix_app_be.Services.Dtos;
 using GradFix_app_be.Services.Exceptions;
+using GradFix_app_be.Services.IServices;
 
 namespace GradFix_app_be.Services
 {

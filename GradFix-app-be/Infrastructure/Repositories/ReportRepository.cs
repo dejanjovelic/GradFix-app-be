@@ -33,6 +33,7 @@ namespace GradFix_app_be.Infrastructure.Repositories
                     .ThenInclude(h => h.NewStatus)
                 .Include(r => r.StatusHistory)
                     .ThenInclude(h => h.ChangedByUser)
+                    .AsSplitQuery()
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
