@@ -106,15 +106,20 @@ namespace GradFix_app_be.Services
                     query.CategoryId,
                     query.StatusId);
 
-            var reportDtos =
-                _mapper.Map<List<ReportListItemDto>>(
-                    paginatedReports.Items);
+            var reportDtos = _mapper.Map<List<ReportListItemDto>>(paginatedReports.Items);
 
             return new PaginatedListDto<ReportListItemDto>(
                 reportDtos,
                 paginatedReports.Page,
                 paginatedReports.PageSize,
                 paginatedReports.TotalCount);
+        }
+
+        public async Task<IReadOnlyCollection<ReportMapItemDto>> GetMapItemsAsync( int? categoryId, int? statusId)
+        {
+            var reports = await _reportRepository.GetMapItemsAsync( categoryId, statusId);
+
+            return _mapper.Map<List<ReportMapItemDto>>(reports);
         }
     }
 }

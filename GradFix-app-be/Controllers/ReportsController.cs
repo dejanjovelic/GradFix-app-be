@@ -19,6 +19,7 @@ namespace GradFix_app_be.Controllers
             _reportService = reportService;
         }
 
+        //POST api/reports
         [HttpPost]
         [Authorize(Roles = "Citizen")]
         [Consumes("multipart/form-data")]
@@ -32,18 +33,31 @@ namespace GradFix_app_be.Controllers
                     report);
         }
 
-        [HttpGet("{id}")]
+        //GET api/reports/1
+        [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             ReportResponseDto report = await _reportService.GetByIdAsync(id);
             return Ok(report);
         }
 
+        //GET api/reports
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery] ReportQueryDto query)
         {
             var reports = await _reportService.GetAllAsync(query);
+
+            return Ok(reports);
+        }
+
+        //GET api/reports/map
+        [HttpGet("map")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetMapItems([FromQuery] int? categoryId, [FromQuery] int? statusId)
+        {
+            var reports = await _reportService.GetMapItemsAsync( categoryId, statusId);
 
             return Ok(reports);
         }
