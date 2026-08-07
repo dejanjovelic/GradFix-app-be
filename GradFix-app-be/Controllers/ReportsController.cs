@@ -26,7 +26,7 @@ namespace GradFix_app_be.Controllers
         public async Task<IActionResult> Create([FromForm] ReportCreateDto dto)
         {
             var reporterId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            ReportResponseDto report = await _reportService.CreateReportAsync(dto, reporterId);
+            ReportResponseDto report = await _reportService.CreateAsync(dto, reporterId);
             return CreatedAtAction(
                     nameof(GetById),
                     new { id = report.Id },
@@ -57,9 +57,19 @@ namespace GradFix_app_be.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetMapItems([FromQuery] int? categoryId, [FromQuery] int? statusId)
         {
-            var reports = await _reportService.GetMapItemsAsync( categoryId, statusId);
+            var reports = await _reportService.GetMapItemsAsync(categoryId, statusId);
 
             return Ok(reports);
+        }
+
+        //PUT api/reports/1
+        [HttpPatch("{id:int}/status")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateStatusAsync([FromRoute] int id, ReportStatusUpdateDto dto)
+        {
+            var changedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ReportResponseDto updatedReport = await _reportService.UpdateStatusAsync(id, dto, changedByUserId);
+            return Ok(updatedReport);
         }
     }
 }

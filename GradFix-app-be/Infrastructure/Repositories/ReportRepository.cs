@@ -37,11 +37,18 @@ namespace GradFix_app_be.Infrastructure.Repositories
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
+        public async Task<Report?> GetForStatusUpdateAsync(int id)
+        {
+            return await _dbContext.Reports
+                .FirstOrDefaultAsync(report => report.Id == id);
+        }
+
         public async Task<PaginatedList<Report>> GetAllAsync(
                 int page,
                 int pageSize,
                 int? categoryId = null,
-                int? statusId = null)
+                int? statusId = null,
+                string? searchQuery = null)
         {
             var query = _dbContext.Reports
                 .AsNoTracking()
@@ -59,6 +66,26 @@ namespace GradFix_app_be.Infrastructure.Repositories
             {
                 query = query.Where(report => report.StatusId == statusId.Value);
             }
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                var searchTerm = searchQuery.Trim();
+
+                query = query.Where(report =>
+                    (report.Title != null &&
+                     EF.Functions.ILike(
+                         report.Title,
+                         $"%{searchTerm}%")) ||
+
+                    (report.AddressFallback != null &&
+                     EF.Functions.ILike(
+                         report.AddressFallback,
+                         $"%{searchTerm}%")) ||
+
+                    EF.Functions.ILike(
+                        report.Description,
+                        $"%{searchTerm}%"));
+            }
+
 
             var totalRowCount = await query.CountAsync();
 

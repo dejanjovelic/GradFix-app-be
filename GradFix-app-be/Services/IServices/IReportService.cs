@@ -6,9 +6,10 @@ namespace GradFix_app_be.Services.IServices
 {
     public interface IReportService
     {
-        Task<ReportResponseDto> CreateReportAsync(ReportCreateDto dto, string? reporterId);
+        Task<ReportResponseDto> CreateAsync(ReportCreateDto dto, string? reporterId);
         Task<ReportResponseDto> GetByIdAsync(int id);
         Task<PaginatedListDto<ReportListItemDto>> GetAllAsync(ReportQueryDto query);
         Task<IReadOnlyCollection<ReportListItemDto>> GetMapItemsAsync(int? categoryId, int? statusId);
+        Task<ReportResponseDto> UpdateStatusAsync(int reportId, ReportStatusUpdateDto dto, string? changedByUserId);
     }
 }

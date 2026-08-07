@@ -28,6 +28,7 @@ namespace GradFix_app_be.Controllers.Middleware
                 BadRequestException => StatusCodes.Status400BadRequest,
                 NotFoundException => StatusCodes.Status404NotFound,
                 UnauthorizedException => StatusCodes.Status401Unauthorized,
+                ForbiddenException => StatusCodes.Status403Forbidden,
                 _ => StatusCodes.Status500InternalServerError
             };
             var response = new { error = exception.Message };

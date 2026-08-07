@@ -25,7 +25,7 @@ namespace GradFix_app_be.Infrastructure
             }
 
             // Admin user
-            var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL") ?? "admin@local";
+            var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL") ?? "admin@local.rs";
             var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "Admin123!";
 
             var existing = await userManager.FindByEmailAsync(adminEmail);

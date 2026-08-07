@@ -15,5 +15,7 @@ namespace GradFix_app_be.Services.Dtos
 
         [Range(1, int.MaxValue)]
         public int? StatusId { get; set; }
+
+        public string? SearchQuery { get; set; }
     }
 }

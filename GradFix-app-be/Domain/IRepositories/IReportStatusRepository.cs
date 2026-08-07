@@ -6,5 +6,6 @@ namespace GradFix_app_be.Domain.IRepositories
     {
         Task<ReportStatus> GetByNameAsync(string statusName);
         Task<List<ReportStatus>> GetAllAsync();
+        Task<ReportStatus?> GetByIdAsync(int id);
     }
 }

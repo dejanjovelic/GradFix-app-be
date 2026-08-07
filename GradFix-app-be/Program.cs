@@ -8,8 +8,6 @@ using GradFix_app_be.Infrastructure.Repositories;
 using GradFix_app_be.Services;
 using GradFix_app_be.Services.IServices;
 using GradFix_app_be.Services.Mappings;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
@@ -62,6 +60,8 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IImageStorageService, ImageStorageService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IReportStatusService, ReportStatusService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IReportStatusHistoryRepository, ReportStatusHistoryRepository>();
 
 builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 

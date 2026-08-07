@@ -108,7 +108,7 @@ namespace GradFix_app_be.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
 
                     b.HasData(
                         new
@@ -184,7 +184,7 @@ namespace GradFix_app_be.Migrations
 
                     b.HasIndex("StatusId");
 
-                    b.ToTable("Reports");
+                    b.ToTable("Reports", (string)null);
                 });
 
             modelBuilder.Entity("GradFix_app_be.Domain.ReportImage", b =>
@@ -220,7 +220,7 @@ namespace GradFix_app_be.Migrations
 
                     b.HasIndex("ReportId");
 
-                    b.ToTable("ReportImages");
+                    b.ToTable("ReportImages", (string)null);
                 });
 
             modelBuilder.Entity("GradFix_app_be.Domain.ReportStatus", b =>
@@ -239,7 +239,7 @@ namespace GradFix_app_be.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReportStatuses");
+                    b.ToTable("ReportStatuses", (string)null);
 
                     b.HasData(
                         new
@@ -310,7 +310,7 @@ namespace GradFix_app_be.Migrations
 
                     b.HasIndex("ReportId");
 
-                    b.ToTable("ReportStatusHistories");
+                    b.ToTable("ReportStatusHistories", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
