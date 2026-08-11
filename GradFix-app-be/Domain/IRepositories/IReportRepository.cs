@@ -4,7 +4,7 @@ namespace GradFix_app_be.Domain.IRepositories
 {
     public interface IReportRepository
     {
-        Task<Report> AddAsync(Report report);
+        Task AddAsync(Report report);
         Task<Report?> GetByIdAsync(int id);
         Task<PaginatedList<Report>> GetAllAsync(int page, int pageSize, int? categoryId, int? statusId, string? searchQuery);
         Task<List<Report>> GetMapItemsAsync(int? categoryId, int? statusId);

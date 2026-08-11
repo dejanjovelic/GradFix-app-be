@@ -13,11 +13,9 @@ namespace GradFix_app_be.Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<Report> AddAsync(Report report)
+        public async Task AddAsync(Report report)
         {
             _dbContext.Reports.Add(report);
-            await _dbContext.SaveChangesAsync();
-            return report;
         }
 
         public async Task<Report?> GetByIdAsync(int id)

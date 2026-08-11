@@ -195,7 +195,7 @@ namespace GradFix_app_beTests
                     report.Id = 25;
                     addedReport = report;
                 })
-                .ReturnsAsync((Report report) => report);
+                .Returns(Task.CompletedTask);
 
             _mapperMock
                 .Setup(mapper =>
