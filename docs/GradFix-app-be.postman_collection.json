@@ -1,0 +1,53 @@
+{
+  "info": {
+    "_postman_id": "GradFix-app-be-sample",
+    "name": "GradFixApp API - reports",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GetMine Reports",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:5207/api/reports/mine?page=1&pageSize=6&statusId=2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5207",
+          "path": ["api", "reports", "mine"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "pageSize", "value": "6" },
+            { "key": "statusId", "value": "2" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"testemail@example.com\",\n  \"password\": \"testpassword\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5207/api/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5207",
+          "path": ["api", "auth", "login"]
+        }
+      }
+    }
+  ]
+}

@@ -181,7 +181,34 @@ namespace GradFix_app_be.Services
             await _unitOfWork.SaveAsync();
 
             return await GetByIdAsync(report.Id);
+        }
 
+        public async Task<PaginatedListDto<ReportListItemDto>> GetMineAsync(ReportQueryDto query, string? reporterId) 
+        {
+            if (string.IsNullOrWhiteSpace(reporterId))
+            {
+                throw new UnauthorizedException(
+                    "Authenticated user identifier is missing.");
+            }
+
+            var paginatedReports =
+                await _reportRepository.GetMineAsync(
+                    reporterId,
+                    query.Page,
+                    query.PageSize,
+                    query.CategoryId,
+                    query.StatusId,
+                    query.SearchQuery);
+
+            var reportDtos =
+                _mapper.Map<List<ReportListItemDto>>(
+                    paginatedReports.Items);
+
+            return new PaginatedListDto<ReportListItemDto>(
+                reportDtos,
+                paginatedReports.Page,
+                paginatedReports.PageSize,
+                paginatedReports.TotalCount);
         }
     }
 }

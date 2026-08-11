@@ -11,5 +11,6 @@ namespace GradFix_app_be.Services.IServices
         Task<PaginatedListDto<ReportListItemDto>> GetAllAsync(ReportQueryDto query);
         Task<IReadOnlyCollection<ReportListItemDto>> GetMapItemsAsync(int? categoryId, int? statusId);
         Task<ReportResponseDto> UpdateStatusAsync(int reportId, ReportStatusUpdateDto dto, string? changedByUserId);
+        Task<PaginatedListDto<ReportListItemDto>> GetMineAsync(ReportQueryDto query, string? reporterId);
     }
 }

@@ -125,5 +125,66 @@ namespace GradFix_app_be.Infrastructure.Repositories
                 .OrderByDescending(report => report.CreatedAt)
                 .ToListAsync();
         }
+
+        public async Task<PaginatedList<Report>> GetMineAsync(string reporterId, int page, int pageSize, int? categoryId = null, int? statusId = null, string? searchQuery = null)
+        {
+            var query = _dbContext.Reports
+            .AsNoTracking()
+            .Where(report => report.ReporterId == reporterId)
+            .Include(report => report.Category)
+            .Include(report => report.Status)
+            .Include(report => report.Images)
+            .AsQueryable();
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(report =>
+                    report.CategoryId ==
+                    categoryId.Value);
+            }
+
+            if (statusId.HasValue)
+            {
+                query = query.Where(report =>
+                    report.StatusId ==
+                    statusId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                var searchTerm = searchQuery.Trim();
+
+                query = query.Where(report =>
+                    (report.Title != null &&
+                     EF.Functions.ILike(
+                         report.Title,
+                         $"%{searchTerm}%")) ||
+
+                    (report.AddressFallback != null &&
+                     EF.Functions.ILike(
+                         report.AddressFallback,
+                         $"%{searchTerm}%")) ||
+
+                    EF.Functions.ILike(
+                        report.Description,
+                        $"%{searchTerm}%"));
+            }
+
+            var totalRowCount =
+                await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(report =>
+                    report.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PaginatedList<Report>(
+                items,
+                page,
+                pageSize,
+                totalRowCount);
+        }
     }
 }

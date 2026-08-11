@@ -71,5 +71,19 @@ namespace GradFix_app_be.Controllers
             ReportResponseDto updatedReport = await _reportService.UpdateStatusAsync(id, dto, changedByUserId);
             return Ok(updatedReport);
         }
+
+        [HttpGet("mine")]
+        [Authorize(Roles = "Citizen")]
+        public async Task<IActionResult> GetMine([FromQuery] ReportQueryDto query)
+        {
+            var reporterId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var reports =
+                await _reportService.GetMineAsync( 
+                    query,
+                    reporterId);
+
+            return Ok(reports);
+        }
     }
 }

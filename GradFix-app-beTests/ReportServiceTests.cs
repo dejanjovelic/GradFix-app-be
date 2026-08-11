@@ -8,6 +8,7 @@ using GradFix_app_be.Services.Exceptions;
 using GradFix_app_be.Services.IServices;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using Shouldly;
 using System.Timers;
 
 namespace GradFix_app_beTests
@@ -33,7 +34,7 @@ namespace GradFix_app_beTests
             _reportStatusHistoryRepository = new Mock<IReportStatusHistoryRepository>();
             _imageStorageServiceMock = new Mock<IImageStorageService>();
             _mapperMock = new Mock<IMapper>();
-           
+
             _unitOfWork = new Mock<IUnitOfWork>();
 
             _service = new ReportService(
@@ -187,14 +188,14 @@ namespace GradFix_app_beTests
                 .ReturnsAsync(storedImages);
 
             _reportRepositoryMock
-    .Setup(repository =>
-        repository.AddAsync(It.IsAny<Report>()))
-    .Callback<Report>(report =>
-    {
-        report.Id = 25;
-        addedReport = report;
-    })
-    .ReturnsAsync((Report report) => report);
+                .Setup(repository =>
+                    repository.AddAsync(It.IsAny<Report>()))
+                .Callback<Report>(report =>
+                {
+                    report.Id = 25;
+                    addedReport = report;
+                })
+                .ReturnsAsync((Report report) => report);
 
             _mapperMock
                 .Setup(mapper =>
@@ -460,8 +461,9 @@ namespace GradFix_app_beTests
                 .Setup(repository => repository.GetAllAsync(
                     query.Page,
                     query.PageSize,
-                    query.CategoryId,
-                    query.StatusId))
+                    It.IsAny<int?>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<string?>()))
                 .ReturnsAsync(paginatedReports);
 
             _mapperMock
@@ -488,7 +490,9 @@ namespace GradFix_app_beTests
                     1,
                     2,
                     1,
-                    1),
+                    1,
+                    null
+                    ),
                 Times.Once);
 
             _mapperMock.Verify(mapper =>
@@ -518,8 +522,10 @@ namespace GradFix_app_beTests
                 .Setup(repository => repository.GetAllAsync(
                     query.Page,
                     query.PageSize,
-                    query.CategoryId,
-                    query.StatusId))
+                    It.IsAny<int?>(),
+                     It.IsAny<int?>(),
+                      It.IsAny<string?>()
+                     ))
                 .ReturnsAsync(paginatedReports);
 
             _mapperMock
@@ -541,6 +547,7 @@ namespace GradFix_app_beTests
                 repository.GetAllAsync(
                     1,
                     6,
+                    null,
                     null,
                     null),
                 Times.Once);
@@ -569,6 +576,7 @@ namespace GradFix_app_beTests
                     2,
                     6,
                     3,
+                    null,
                     null))
                 .ReturnsAsync(paginatedReports);
 
@@ -587,7 +595,9 @@ namespace GradFix_app_beTests
                     2,
                     6,
                     3,
-                    null),
+                    null,
+                    null
+                    ),
                 Times.Once);
         }
 
@@ -614,7 +624,9 @@ namespace GradFix_app_beTests
                     1,
                     10,
                     null,
-                    2))
+                    2,
+                    null
+                    ))
                 .ReturnsAsync(paginatedReports);
 
             _mapperMock
@@ -632,7 +644,8 @@ namespace GradFix_app_beTests
                     1,
                     10,
                     null,
-                    2),
+                    2,
+                    null),
                 Times.Once);
         }
 
@@ -659,6 +672,194 @@ namespace GradFix_app_beTests
             // Assert
             Assert.Equal(expectedTotalPages, result.TotalPages);
             Assert.Equal(totalCount, result.TotalCount);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task GetMineAsync_WhenReporterIdMissing_ThrowsUnauthorized(string? reporterId)
+        {
+            // Arrange
+            var query = new ReportQueryDto();
+
+            // Act
+            var action = async () =>
+                await _service.GetMineAsync(
+                    query,
+                    reporterId);
+
+            // Assert
+            await action.ShouldThrowAsync<UnauthorizedException>();
+        }
+
+        [Fact]
+        public async Task GetMineAsync_PassesReporterIdToRepository()
+        {
+            // Arrange
+            const string reporterId = "citizen-123";
+
+            var query = new ReportQueryDto
+            {
+                Page = 1,
+                PageSize = 6
+            };
+
+            var reports = new List<Report>
+    {
+        new Report
+        {
+            Id = 1,
+            ReporterId = reporterId,
+            Title = "First report"
+        },
+        new Report
+        {
+            Id = 2,
+            ReporterId = reporterId,
+            Title = "Second report"
+        }
+    };
+
+            var paginatedReports = new PaginatedList<Report>(
+                reports,
+                1,
+                6,
+                2);
+
+            _reportRepositoryMock
+                .Setup(repository => repository.GetMineAsync(
+                    reporterId,
+                    query.Page,
+                    query.PageSize,
+                    query.CategoryId,
+                    query.StatusId,
+                    query.SearchQuery))
+                .ReturnsAsync(paginatedReports);
+
+            _mapperMock
+    .Setup(mapper =>
+        mapper.Map<List<ReportListItemDto>>(reports))
+    .Returns(new List<ReportListItemDto>
+    {
+                new()
+                {
+                    Id = 7,
+                    Title = "Broken street light"
+                },
+                new()
+                {
+                    Id = 8,
+                    Title = "Damaged bench"
+                }
+    });
+
+            // Act
+            var result = await _service.GetMineAsync(
+                query,
+                reporterId);
+
+            // Assert
+            _reportRepositoryMock.Verify(
+                repository => repository.GetMineAsync(
+                    reporterId,
+                    query.Page,
+                    query.PageSize,
+                    query.CategoryId,
+                    query.StatusId,
+                    query.SearchQuery),
+                Times.Once);
+
+            result.Items.Count.ShouldBe(2);
+        }
+
+        [Fact]
+        public async Task GetMineAsync_MapsPaginatedResultCorrectly()
+        {
+            // Arrange
+            const string reporterId = "citizen-123";
+
+            var query = new ReportQueryDto
+            {
+                Page = 2,
+                PageSize = 6
+            };
+
+            var reports = new List<Report>
+            {
+            new Report
+            {
+                Id = 7,
+                ReporterId = reporterId,
+                Title = "Broken street light",
+                Description = "Street light is not working.",
+                CategoryId = 2,
+                StatusId = 1,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Report
+            {
+                Id = 8,
+                ReporterId = reporterId,
+                Title = "Damaged bench",
+                Description = "Bench is damaged.",
+                CategoryId = 1,
+                StatusId = 1,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+
+            var paginatedReports = new PaginatedList<Report>(
+                reports,
+                page: 2,
+                pageSize: 6,
+                totalRowCount: 14);
+
+            _reportRepositoryMock
+                .Setup(repository => repository.GetMineAsync(
+                    reporterId,
+                    query.Page,
+                    query.PageSize,
+                    query.CategoryId,
+                    query.StatusId,
+                    query.SearchQuery))
+                .ReturnsAsync(paginatedReports);
+
+            _mapperMock
+                .Setup(mapper =>
+                    mapper.Map<List<ReportListItemDto>>(reports))
+                .Returns(new List<ReportListItemDto>
+                {
+                    new()
+                    {
+                        Id = 7,
+                        Title = "Broken street light"
+                    },
+                    new()
+                    {
+                        Id = 8,
+                        Title = "Damaged bench"
+                    }
+                });
+
+            // Act
+            var result = await _service.GetMineAsync(
+                    query,
+                    reporterId);
+
+            // Assert
+            result.Page.ShouldBe(2);
+            result.PageSize.ShouldBe(6);
+            result.TotalCount.ShouldBe(14);
+            result.TotalPages.ShouldBe(3);
+
+            result.Items.Count.ShouldBe(2);
+
+            result.Items[0].Id.ShouldBe(7);
+            result.Items[0].Title.ShouldBe("Broken street light");
+
+            result.Items[1].Id.ShouldBe(8);
+            result.Items[1].Title.ShouldBe("Damaged bench");
         }
     }
 }
